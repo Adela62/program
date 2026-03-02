@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FCE – Key Word Transformations (Program)</title>
+  <style>
+    :root { --bg:#fff8dc; --card:#ffffff; --border:#e6e0c8; --text:#222; }
+    body { margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--text); }
+    header { padding:18px 16px; text-align:center; }
+    header h1 { margin:0; font-size:20px; }
+    header p { margin:6px 0 0; font-size:14px; opacity:.9; }
+    .wrap { max-width: 1020px; margin: 0 auto; padding: 0 14px 24px; }
+    .card{
+      background:var(--card); border:1px solid var(--border);
+      border-radius:14px; padding:14px; margin:12px 0;
+      box-shadow: 0 1px 0 rgba(0,0,0,.04);
+    }
+    .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; }
+    .btn{
+      border:1px solid var(--border); background:#fff; border-radius:10px;
+      padding:10px 12px; cursor:pointer; font-weight:700;
+    }
+    .btn:hover{ filter:brightness(0.98); }
+    .score{ font-weight:800; }
+    .hint{ font-size:13px; opacity:.85; margin-top:6px; line-height:1.35; }
+    .tag{
+      display:inline-block; font-size:12px; font-weight:800;
+      padding:4px 8px; border-radius:999px; background:#f3edd6; border:1px solid var(--border);
+      margin-bottom:8px;
+    }
+    .item{
+      border:1px dashed #d9d2b8; border-radius:14px; background:#fffdf4;
+      padding:12px; margin:10px 0;
+    }
+    .q{ margin:0; line-height:1.6; font-size:15px; }
+    .kw{ font-weight:900; letter-spacing:.6px; }
+    .line{
+      display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:10px;
+    }
+    input[type="text"]{
+      flex: 1 1 460px;
+      padding:10px 12px; border-radius:12px; border:1px solid #d7d0b6; background:#fff;
+      font-size:15px;
+    }
+    .status{
+      font-size:12px; font-weight:800; padding:4px 8px; border-radius:999px;
+      border:1px solid var(--border); background:#fff;
+    }
+    .ok{ outline:2px solid rgba(0,128,0,.25); }
+    .bad{ outline:2px solid rgba(200,0,0,.20); }
+    .result{
+      margin-top:10px; font-size:14px; padding:10px 12px;
+      border-radius:12px; border:1px solid var(--border); background:#fffdf4;
+      display:none;
+      white-space:pre-line;
+    }
+    .small{ font-size:12px; opacity:.8; }
+    footer{ text-align:center; font-size:12px; opacity:.75; padding:14px 0 20px; }
+    code{ background:#f3edd6; padding:2px 6px; border-radius:8px; border:1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FCE – Key Word Transformations</h1>
+    <p>Completa 2–5 palabras (incluyendo la palabra dada). Usa el botón “Corregir”.</p>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="row">
+        <div>
+          <button class="btn" id="checkBtn">Corregir</button>
+          <button class="btn" id="showBtn">Mostrar respuestas</button>
+          <button class="btn" id="resetBtn">Reiniciar</button>
+        </div>
+        <div class="score" id="scoreBox">Puntuación: —</div>
+      </div>
+      <div class="hint">
+        Reglas: no cambies la <b>KEY WORD</b>. Escribe solo el final (la parte que falta).
+        El programa comprueba: (1) que incluye la keyword, (2) 2–5 palabras, (3) coincidencia con la solución.
+      </div>
+      <div class="result" id="feedbackBox"></div>
+    </div>
+
+    <div id="quiz"></div>
+
+    <div class="card">
+      <div class="tag">Notas</div>
+      <div class="small">
+        • El corrector acepta solo la solución “modelo” (puedo añadir alternativas si me las dices).<br>
+        • Consejo: evita signos de puntuación extra dentro del hueco.
+      </div>
+    </div>
+
+    <footer>© 2026 Jolley. All rights reserved.</footer>
+  </div>
+
+  <script>
+    // =============================
+    // Data
+    // =============================
+    // "answer" es la frase exacta esperada en el hueco (sin subrayados).
+    // "alts" (opcional) permite variantes aceptadas.
+    const ITEMS = [
+      {
+        n: 1,
+        first: "A good teacher should be able to explain things clearly.",
+        keyword: "put",
+        secondPrefix: "A good teacher should be able to ",
+        secondSuffix: " clearly.",
+        answer: "put things across",
+        alts: []
+      },
+      {
+        n: 2,
+        first: "Please don’t leave your toys lying around the floor.",
+        keyword: "put",
+        secondPrefix: "",
+        secondSuffix: " tidily, please.",
+        // En el enunciado original: "Put ... tidily, please." → modelo:
+        answer: "put your toys away",
+        alts: ["put the toys away"] // variante razonable
+      },
+      {
+        n: 3,
+        first: "I wasn’t able to keep notes on everything the lecturer said.",
+        keyword: "manage",
+        secondPrefix: "I didn’t ",
+        secondSuffix: " everything the lecturer said.",
+        answer: "manage to write down",
+        alts: []
+      },
+      {
+        n: 4,
+        first: "It would be useful if you could propose something in writing.",
+        keyword: "forward",
+        secondPrefix: "It would be useful if you could ",
+        secondSuffix: " in writing.",
+        answer: "put something forward",
+        alts: []
+      },
+      {
+        n: 5,
+        first: "If you keep delaying going to the doctor it will only make things worse.",
+        keyword: "off",
+        secondPrefix: "The longer you ",
+        secondSuffix: " to the doctor the worse it will be.",
+        answer: "put off going",
+        alts: ["keep putting off going"] // (ojo: podría pasarse de 5 palabras si añades más)
+      },
+      {
+        n: 6,
+        first: "As soon as she had got dressed, she left the house.",
+        keyword: "put",
+        secondPrefix: "As soon as she ",
+        secondSuffix: ", she left the house.",
+        answer: "had put on her clothes",
+        alts: ["had put her clothes on"] // alternativa común
+      },
+      {
+        n: 7,
+        first: "They're planning to build new blocks of flats near the park.",
+        keyword: "put",
+        secondPrefix: "They are ",
+        secondSuffix: " new blocks of flats near the park.",
+        answer: "planning to put up",
+        alts: []
+      },
+      {
+        n: 8,
+        first: "The price of electrical goods has increased again.",
+        keyword: "put",
+        secondPrefix: "They’ve ",
+        secondSuffix: " electrical goods again.",
+        answer: "put up the price of",
+        alts: ["put the price of up"] // rara, pero posible; puedes quitarla si no la quieres
+      },
+      {
+        n: 9,
+        first: "The receptionist tried to connect me but the line was engaged.",
+        keyword: "put",
+        secondPrefix: "The receptionist ",
+        secondSuffix: " because the line was engaged.",
+        answer: "couldn’t put me through",
+        alts: ["could not put me through"]
+      },
+      {
+        n: 10,
+        first: "I won't accept being treated like a child any more.",
+        keyword: "put",
+        secondPrefix: "I won’t ",
+        secondSuffix: " being treated like a child any more.",
+        answer: "put up with",
+        alts: []
+      }
+    ];
+
+    // =============================
+    // UI
+    // =============================
+    const quizEl = document.getElementById("quiz");
+    const scoreBox = document.getElementById("scoreBox");
+    const feedbackBox = document.getElementById("feedbackBox");
+
+    function escapeHtml(s){
+      return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    }
+
+    function render(){
+      quizEl.innerHTML = "";
+      ITEMS.forEach((it, idx) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const tag = document.createElement("div");
+        tag.className = "tag";
+        tag.textContent = `Item ${it.n}`;
+        card.appendChild(tag);
+
+        const p1 = document.createElement("p");
+        p1.className = "q";
+        p1.innerHTML = `<b>First sentence:</b> ${escapeHtml(it.first)}`;
+        card.appendChild(p1);
+
+        const p2 = document.createElement("p");
+        p2.className = "q";
+        p2.innerHTML = `<b>KEY WORD:</b> <span class="kw">${escapeHtml(it.keyword.toUpperCase())}</span>`;
+        card.appendChild(p2);
+
+        const p3 = document.createElement("p");
+        p3.className = "q";
+        p3.innerHTML = `<b>Second sentence:</b> ${escapeHtml(it.secondPrefix)} ________ ${escapeHtml(it.secondSuffix)}`;
+        card.appendChild(p3);
+
+        const line = document.createElement("div");
+        line.className = "line";
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = "Escribe aquí (2–5 palabras, incluyendo la KEY WORD)";
+        input.dataset.idx = String(idx);
+        input.addEventListener("input", () => updateWordCount(idx));
+        line.appendChild(input);
+
+        const badge = document.createElement("span");
+        badge.className = "status";
+        badge.id = `wc-${idx}`;
+        badge.textContent = "0 words";
+        line.appendChild(badge);
+
+        card.appendChild(line);
+
+        quizEl.appendChild(card);
+      });
+
+      // initialize counts
+      ITEMS.forEach((_, i) => updateWordCount(i));
+    }
+
+    function wordsCount(s){
+      const clean = String(s || "")
+        .trim()
+        .replace(/\s+/g, " ");
+      if (!clean) return 0;
+      return clean.split(" ").length;
+    }
+
+    function updateWordCount(i){
+      const input = document.querySelector(`input[data-idx="${i}"]`);
+      const badge = document.getElementById(`wc-${i}`);
+      const n = wordsCount(input.value);
+      badge.textContent = `${n} word${n === 1 ? "" : "s"}`;
+    }
+
+    // =============================
+    // Checking logic
+    // =============================
+    function normalizeAnswer(s){
+      return norm(String(s || "").replace(/[.,;:!?]/g, "").replace(/\s+/g, " "));
+    }
+    function norm(s){ return String(s||"").trim().toLowerCase(); }
+
+    function clearMarks(){
+      Array.from(document.querySelectorAll("input[type='text']")).forEach(inp => {
+        inp.classList.remove("ok","bad");
+      });
+    }
+
+    function check(){
+      clearMarks();
+      feedbackBox.style.display = "block";
+      feedbackBox.textContent = "";
+
+      let total = ITEMS.length;
+      let correct = 0;
+      let issues = [];
+
+      ITEMS.forEach((it, idx) => {
+        const input = document.querySelector(`input[data-idx="${idx}"]`);
+        const raw = input.value.trim();
+        const wc = wordsCount(raw);
+
+        // basic constraints
+        const hasKeyword = norm(raw).split(/\s+/).includes(norm(it.keyword));
+
+        // exact match against model / alts (normalized)
+        const candidate = normalizeAnswer(raw);
+        const accepted = [it.answer, ...(it.alts||[])].map(normalizeAnswer);
+
+        let ok = true;
+        let reason = "";
+
+        if (wc < 2 || wc > 5) { ok = false; reason = "Debe tener 2–5 palabras."; }
+        else if (!hasKeyword) { ok = false; reason = "Debe incluir la KEY WORD sin cambiarla."; }
+        else if (!accepted.includes(candidate)) { ok = false; reason = "No coincide con la solución modelo."; }
+
+        if (ok){
+          correct++;
+          input.classList.add("ok");
+        } else {
+          input.classList.add("bad");
+          issues.push(`Item ${it.n}: ${reason}`);
+        }
+      });
+
+      scoreBox.textContent = `Puntuación: ${correct} / ${total}`;
+
+      if (correct === total){
+        feedbackBox.textContent = "Todo correcto.";
+      } else {
+        feedbackBox.textContent = issues.join("\n");
+      }
+    }
+
+    function showAnswers(){
+      clearMarks();
+      ITEMS.forEach((it, idx) => {
+        const input = document.querySelector(`input[data-idx="${idx}"]`);
+        input.value = it.answer;
+        input.classList.add("ok");
+        updateWordCount(idx);
+      });
+      scoreBox.textContent = "Puntuación: —";
+      feedbackBox.style.display = "block";
+      feedbackBox.textContent = "Respuestas mostradas.";
+    }
+
+    function resetAll(){
+      clearMarks();
+      Array.from(document.querySelectorAll("input[type='text']")).forEach((inp, i) => {
+        inp.value = "";
+        updateWordCount(i);
+      });
+      scoreBox.textContent = "Puntuación: —";
+      feedbackBox.style.display = "none";
+      feedbackBox.textContent = "";
+    }
+
+    document.getElementById("checkBtn").addEventListener("click", check);
+    document.getElementById("showBtn").addEventListener("click", showAnswers);
+    document.getElementById("resetBtn").addEventListener("click", resetAll);
+
+    // init
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FCE – Prepositions (Time / Place / Zoo Text)</title>
+  <style>
+    :root { --bg:#fff8dc; --card:#ffffff; --border:#e6e0c8; --text:#222; }
+    body { margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--text); }
+    header { padding:18px 16px; text-align:center; }
+    header h1 { margin:0; font-size:20px; }
+    header p { margin:6px 0 0; font-size:14px; opacity:.9; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 14px 24px; }
+    .card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:14px; padding:14px; margin:12px 0;
+      box-shadow: 0 1px 0 rgba(0,0,0,.04);
+    }
+    .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; }
+    .btn {
+      border:1px solid var(--border); background:#fff; border-radius:10px;
+      padding:10px 12px; cursor:pointer; font-weight:600;
+    }
+    .btn:hover { filter:brightness(0.98); }
+    .score { font-weight:700; }
+    .hint { font-size:13px; opacity:.85; margin-top:6px; line-height:1.4; }
+    .tag {
+      display:inline-block; font-size:12px; font-weight:700;
+      padding:4px 8px; border-radius:999px; background:#f3edd6; border:1px solid var(--border);
+      margin-bottom:8px;
+    }
+    .q { line-height: 1.9; font-size:16px; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:10px; }
+    .item { padding:10px 12px; border:1px dashed #d9d2b8; border-radius:12px; background:#fffdf4; }
+    select {
+      padding:7px 9px; border-radius:10px; border:1px solid #d7d0b6; background:#fff;
+      font-size:15px; margin: 0 4px;
+    }
+    .result {
+      margin-top:10px; font-size:14px; padding:10px 12px;
+      border-radius:12px; border:1px solid var(--border); background:#fffdf4;
+      display:none;
+    }
+    .ok { outline: 2px solid rgba(0, 128, 0, .25); }
+    .bad { outline: 2px solid rgba(200, 0, 0, .20); }
+    nav { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+    .tab {
+      border:1px solid var(--border); background:#fff; border-radius:999px;
+      padding:8px 12px; cursor:pointer; font-weight:700; font-size:13px;
+    }
+    .tab.active { background:#f3edd6; }
+    .panel { display:none; }
+    .panel.active { display:block; }
+    footer { text-align:center; font-size:12px; opacity:.75; padding:14px 0 20px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FCE – Prepositions (Time / Place / Text)</h1>
+    <p>Este archivo contiene SOLO este ejercicio (tiempo, lugar y texto del zoo).</p>
+  </header>
+
+  <div class="wrap">
+    <!-- MENU -->
+    <div class="card">
+      <div class="row">
+        <div>
+          <div class="tag">Menu</div>
+          <div class="hint">Elige: (1) Time, (2) Place, (3) Zoo text.</div>
+        </div>
+        <nav>
+          <button class="tab active" data-tab="time">1) Time</button>
+          <button class="tab" data-tab="place">2) Place</button>
+          <button class="tab" data-tab="text">3) Zoo text</button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="card">
+      <div class="row">
+        <div>
+          <button class="btn" id="checkBtn">Corregir</button>
+          <button class="btn" id="showBtn">Mostrar respuestas</button>
+          <button class="btn" id="resetBtn">Reiniciar</button>
+        </div>
+        <div class="score" id="scoreBox">Puntuación: —</div>
+      </div>
+      <div class="result" id="feedbackBox"></div>
+    </div>
+
+    <!-- TIME -->
+    <section class="panel active" id="panel-time">
+      <div class="card">
+        <div class="tag">© Prepositions of time</div>
+        <div class="hint">
+          Completa con: <b>in / on / at</b> o <b>—</b> (si no lleva preposición). Ej.: <i>in an hour</i>, <i>at weekends</i>, <i>on March 25</i>.
+        </div>
+      </div>
+      <div class="card">
+        <div class="grid" id="quizTime"></div>
+      </div>
+    </section>
+
+    <!-- PLACE -->
+    <section class="panel" id="panel-place">
+      <div class="card">
+        <div class="tag">© Prepositions of place</div>
+        <div class="hint">
+          Completa con la preposición adecuada (y <b>—</b> si no lleva). Ej.: <i>on the corner</i>, <i>in Europe</i>, <i>at the bus stop</i>.
+        </div>
+      </div>
+      <div class="card">
+        <div class="grid" id="quizPlace"></div>
+      </div>
+    </section>
+
+    <!-- TEXT -->
+    <section class="panel" id="panel-text">
+      <div class="card">
+        <div class="tag">© Read the text: Going to the zoo</div>
+        <div class="hint">Rellena las preposiciones. (0) ya está dado: <b>On</b> Saturday morning…</div>
+      </div>
+      <div class="card">
+        <div class="q" id="quizText"></div>
+      </div>
+    </section>
+
+    <footer>© 2026 Jolley. All rights reserved.</footer>
+  </div>
+
+  <script>
+    // ========= Helpers =========
+    const $ = (id) => document.getElementById(id);
+    const norm = (s) => String(s || "").trim().toLowerCase();
+
+    // ========= Tabs =========
+    const tabs = Array.from(document.querySelectorAll(".tab"));
+    const panels = {
+      time: $("panel-time"),
+      place: $("panel-place"),
+      text: $("panel-text")
+    };
+    let activeTab = "time";
+
+    tabs.forEach(btn => {
+      btn.addEventListener("click", () => {
+        tabs.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeTab = btn.dataset.tab;
+        Object.entries(panels).forEach(([k, el]) => el.classList.toggle("active", k === activeTab));
+        $("scoreBox").textContent = "Puntuación: —";
+        $("feedbackBox").style.display = "none";
+        $("feedbackBox").textContent = "";
+      });
+    });
+
+    // ========= DATA: TIME =========
+    const OPTIONS_TIME = ["", "in", "on", "at", "—"];
+    const TIME_ITEMS = [
+      { phrase: "an hour", ans: ["in"] },
+      { phrase: "weekends", ans: ["at"] },           // BrE: at weekends
+      { phrase: "March 25", ans: ["on"] },
+      { phrase: "weekdays", ans: ["on"] },           // on weekdays (common)
+      { phrase: "a winter's night", ans: ["on"] },
+      { phrase: "a cold day", ans: ["on"] },
+      { phrase: "times", ans: ["at"] },              // at times
+      { phrase: "a week", ans: ["—"] },              // (twice) a week
+      { phrase: "the summer", ans: ["in"] }
+    ];
+
+    function makeSelectTime(i){
+      const s = document.createElement("select");
+      s.dataset.panel = "time";
+      s.dataset.i = String(i);
+      OPTIONS_TIME.forEach(opt => {
+        const o = document.createElement("option");
+        o.value = opt;
+        o.textContent = opt === "" ? "—" : opt;
+        s.appendChild(o);
+      });
+      return s;
+    }
+
+    function renderTime(){
+      const root = $("quizTime");
+      root.innerHTML = "";
+      TIME_ITEMS.forEach((it, i) => {
+        const box = document.createElement("div");
+        box.className = "item";
+        box.appendChild(document.createTextNode("___ "));
+        box.appendChild(makeSelectTime(i));
+        box.appendChild(document.createTextNode(" " + it.phrase));
+        root.appendChild(box);
+      });
+    }
+
+    // ========= DATA: PLACE =========
+    const OPTIONS_PLACE = ["", "in", "on", "at", "to", "into", "—"];
+    const PLACE_ITEMS = [
+      { phrase: "the corner of the road", ans: ["on"] },
+      { phrase: "the streets", ans: ["in"] },
+      { phrase: "the back", ans: ["at"] },
+      { phrase: "work", ans: ["at"] },
+      { phrase: "the crossroads", ans: ["at"] },
+      { phrase: "the open air", ans: ["in"] },
+      { phrase: "the television", ans: ["on"] },
+      { phrase: "home", ans: ["—"] },
+      { phrase: "a journey", ans: ["on"] },
+      { phrase: "the park", ans: ["in"] },
+      { phrase: "the bus stop", ans: ["at"] },
+      { phrase: "a chair", ans: ["on"] },
+      { phrase: "hospital", ans: ["in", "at"] },     // BrE: in hospital; also acceptable: at the hospital
+      { phrase: "the door", ans: ["at"] },
+      { phrase: "Europe", ans: ["in"] },
+      { phrase: "a queue", ans: ["in"] },
+      { phrase: "Earth", ans: ["on"] },
+      { phrase: "the bottom", ans: ["at"] },
+      { phrase: "the north", ans: ["in"] },
+      { phrase: "top", ans: ["at"] }
+    ];
+
+    function makeSelectPlace(i){
+      const s = document.createElement("select");
+      s.dataset.panel = "place";
+      s.dataset.i = String(i);
+      OPTIONS_PLACE.forEach(opt => {
+        const o = document.createElement("option");
+        o.value = opt;
+        o.textContent = opt === "" ? "—" : opt;
+        s.appendChild(o);
+      });
+      return s;
+    }
+
+    function renderPlace(){
+      const root = $("quizPlace");
+      root.innerHTML = "";
+      PLACE_ITEMS.forEach((it, i) => {
+        const box = document.createElement("div");
+        box.className = "item";
+        box.appendChild(document.createTextNode("___ "));
+        box.appendChild(makeSelectPlace(i));
+        box.appendChild(document.createTextNode(" " + it.phrase));
+        root.appendChild(box);
+      });
+    }
+
+    // ========= DATA: TEXT (ZOO) =========
+    // Texto limpiado (tu versión tenía errores tipo OCR). (0) ya dado: On.
+    // Huecos: (1)-(15). En algunos se acepta alternativa (p.ej., "on/about").
+    const OPTIONS_TEXT = ["", "in", "on", "at", "to", "into", "of", "about"];
+    const TEXT_PARTS = [
+      { t: "On Saturday morning, we took the children " },             // (0) given
+      { blank: true, ans: ["to"] },                                    // (1) to the zoo
+      { t: " the zoo because " },
+      { blank: true, ans: ["at"] },                                    // (2) at school
+      { t: " school they are doing a project " },
+      { blank: true, ans: ["on", "about"] },                           // (3) on/about zoos
+      { t: " zoos and we thought they should go " },
+      { blank: true, ans: ["to"] },                                    // (4) to one
+      { t: " one and do some research " },
+      { blank: true, ans: ["on"] },                                    // (5) on the spot
+      { t: " the spot. Later on, when we got home, they looked up some information " },
+      { blank: true, ans: ["in"] },                                    // (6) in the encyclopaedia
+      { t: " the encyclopaedia and we found out that the first public zoo " },
+      { blank: true, ans: ["in"] },                                    // (7) in the world
+      { t: " the world was opened " },
+      { blank: true, ans: ["in"] },                                    // (8) in Paris
+      { t: " Paris " },
+      { blank: true, ans: ["in"] },                                    // (9) in 1793
+      { t: " 1793; this was the famous Jardin des Plantes. " },
+      { blank: true, ans: ["at"] },                                    // (10) at first
+      { t: " first it was animals, of course, but there was also a museum and a botanical garden. The next big zoo to be opened was " },
+      { blank: true, ans: ["in"] },                                    // (11) in 1829
+      { t: " 1829 in Regent's Park " },
+      { blank: true, ans: ["in"] },                                    // (12) in London
+      { t: " London. " },
+      { blank: true, ans: ["in"] },                                    // (13) in Britain
+      { t: " Britain, there are now many more zoos. " },
+      { blank: true, ans: ["at"] },                                    // (14) at Whipsnade Zoo
+      { t: " Whipsnade Zoo, in Bedfordshire, animals from all parts of the world thrive, free to roam " },
+      { blank: true, ans: ["in"] },                                    // (15) in the surrounding countryside
+      { t: " the surrounding countryside." }
+    ];
+
+    function makeSelectText(i){
+      const s = document.createElement("select");
+      s.dataset.panel = "text";
+      s.dataset.i = String(i);
+      OPTIONS_TEXT.forEach(opt => {
+        const o = document.createElement("option");
+        o.value = opt;
+        o.textContent = opt === "" ? "—" : opt;
+        s.appendChild(o);
+      });
+      return s;
+    }
+
+    function renderText(){
+      const root = $("quizText");
+      root.innerHTML = "";
+      let b = 0;
+      TEXT_PARTS.forEach(p => {
+        if (p.blank) {
+          root.appendChild(makeSelectText(b));
+          b++;
+        } else {
+          root.appendChild(document.createTextNode(p.t));
+        }
+      });
+    }
+
+    // ========= Grading =========
+    function getInputsForActive(){
+      return Array.from(document.querySelectorAll(`[data-panel="${activeTab}"]`));
+    }
+    function clearMarks(inputs){
+      inputs.forEach(el => el.classList.remove("ok","bad"));
+    }
+    function setFeedback(msg){
+      $("feedbackBox").style.display = "block";
+      $("feedbackBox").textContent = msg;
+    }
+
+    function checkActive(){
+      const inputs = getInputsForActive();
+      clearMarks(inputs);
+
+      let total = 0, correct = 0, unanswered = 0;
+
+      if (activeTab === "time"){
+        inputs.forEach(sel => {
+          const i = Number(sel.dataset.i);
+          const val = sel.value;
+          total++;
+          if (!val) { unanswered++; sel.classList.add("bad"); return; }
+          if (TIME_ITEMS[i].ans.map(norm).includes(norm(val))) { correct++; sel.classList.add("ok"); }
+          else sel.classList.add("bad");
+        });
+      }
+
+      if (activeTab === "place"){
+        inputs.forEach(sel => {
+          const i = Number(sel.dataset.i);
+          const val = sel.value;
+          total++;
+          if (!val) { unanswered++; sel.classList.add("bad"); return; }
+          if (PLACE_ITEMS[i].ans.map(norm).includes(norm(val))) { correct++; sel.classList.add("ok"); }
+          else sel.classList.add("bad");
+        });
+      }
+
+      if (activeTab === "text"){
+        const blanks = TEXT_PARTS.filter(p => p.blank);
+        inputs.forEach(sel => {
+          const i = Number(sel.dataset.i);
+          const val = sel.value;
+          total++;
+          if (!val) { unanswered++; sel.classList.add("bad"); return; }
+          if (blanks[i].ans.map(norm).includes(norm(val))) { correct++; sel.classList.add("ok"); }
+          else sel.classList.add("bad");
+        });
+      }
+
+      $("scoreBox").textContent = `Puntuación: ${correct} / ${total}`;
+      if (unanswered) setFeedback(`Faltan ${unanswered} huecos. Los rojos están incorrectos o vacíos.`);
+      else if (correct === total) setFeedback("Todo correcto.");
+      else setFeedback("Revisa los huecos en rojo.");
+    }
+
+    function showActive(){
+      const inputs = getInputsForActive();
+      clearMarks(inputs);
+
+      if (activeTab === "time"){
+        inputs.forEach(sel => {
+          const i = Number(sel.dataset.i);
+          sel.value = TIME_ITEMS[i].ans[0];
+          sel.classList.add("ok");
+        });
+      }
+
+      if (activeTab === "place"){
+        inputs.forEach(sel => {
+          const i = Number(sel.dataset.i);
+          sel.value = PLACE_ITEMS[i].ans[0];
+          sel.classList.add("ok");
+        });
+      }
+
+      if (activeTab === "text"){
+        const blanks = TEXT_PARTS.filter(p => p.blank);
+        inputs.forEach(sel => {
+          const i = Number(sel.dataset.i);
+          sel.value = blanks[i].ans[0];
+          sel.classList.add("ok");
+        });
+      }
+
+      $("scoreBox").textContent = "Puntuación: —";
+      setFeedback("Respuestas mostradas.");
+    }
+
+    function resetActive(){
+      const inputs = getInputsForActive();
+      inputs.forEach(el => el.value = "");
+      clearMarks(inputs);
+      $("scoreBox").textContent = "Puntuación: —";
+      $("feedbackBox").style.display = "none";
+      $("feedbackBox").textContent = "";
+    }
+
+    $("checkBtn").addEventListener("click", checkActive);
+    $("showBtn").addEventListener("click", showActive);
+    $("resetBtn").addEventListener("click", resetActive);
+
+    // init
+    renderTime();
+    renderPlace();
+    renderText();
+  </script>
+</body>
+</html>

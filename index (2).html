@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FCE – Main Menu (5 Programs)</title>
+  <style>
+    :root { --bg:#fff8dc; --card:#ffffff; --border:#e6e0c8; --text:#222; }
+    body { margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--text); }
+    header { padding:20px 16px; text-align:center; }
+    header h1 { margin:0; font-size:22px; }
+    header p { margin:8px 0 0; font-size:14px; opacity:.9; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 14px 28px; }
+    .card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:16px; padding:16px; margin:12px 0;
+      box-shadow: 0 1px 0 rgba(0,0,0,.04);
+    }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
+    a.tile {
+      display:block; text-decoration:none; color:var(--text);
+      border:1px solid var(--border); border-radius:16px;
+      background:#fffdf4; padding:14px 14px;
+      transition: transform .06s ease, filter .06s ease;
+    }
+    a.tile:hover { transform: translateY(-2px); filter:brightness(0.99); }
+    .title { font-weight:800; font-size:15px; margin:0 0 6px; }
+    .desc { margin:0; font-size:13px; opacity:.9; line-height:1.35; }
+    .tag {
+      display:inline-block; font-size:12px; font-weight:800;
+      padding:4px 8px; border-radius:999px;
+      background:#f3edd6; border:1px solid var(--border);
+      margin-bottom:10px;
+    }
+    .small { font-size:12px; opacity:.8; line-height:1.4; }
+    footer { text-align:center; font-size:12px; opacity:.75; padding:14px 0 18px; }
+    code { background:#f3edd6; padding:2px 6px; border-radius:8px; border:1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FCE – Main Menu</h1>
+    <p>Selecciona uno de los 5 programas (cada uno puede ser un archivo HTML diferente).</p>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="tag">5 Programs</div>
+
+      <div class="grid">
+        <!-- CAMBIA LOS href POR LOS NOMBRES REALES DE TUS ARCHIVOS -->
+        <a class="tile" href="program1-prepositions-a.html">
+          <p class="title">Program 1 – Prepositions (in/on/at/to/into)</p>
+          <p class="desc">Huecos con corrección automática, mostrar respuestas y reiniciar.</p>
+        </a>
+
+        <a class="tile" href="program2-time-place-zoo.html">
+          <p class="title">Program 2 – Time + Place + “Going to the Zoo”</p>
+          <p class="desc">Menú interno con 3 secciones: time, place y cloze text.</p>
+        </a>
+
+        <a class="tile" href="program3-use-of-english.html">
+          <p class="title">Program 3 – Use of English (Cloze)</p>
+          <p class="desc">Open cloze / multiple choice cloze (estructura típica FCE).</p>
+        </a>
+
+        <a class="tile" href="program4-word-formation.html">
+          <p class="title">Program 4 – Word Formation</p>
+          <p class="desc">Transforma palabras base y comprueba respuestas.</p>
+        </a>
+
+        <a class="tile" href="program5-transformations.html">
+          <p class="title">Program 5 – Key Word Transformations</p>
+          <p class="desc">6 ítems estilo examen, con contador y feedback.</p>
+        </a>
+      </div>
+
+      <p class="small" style="margin-top:12px;">
+        Cómo usarlo: guarda este archivo como <code>index.html</code> y guarda cada ejercicio como
+        <code>program1-prepositions-a.html</code>, <code>program2-time-place-zoo.html</code>, etc.
+        Si ya tienes otros nombres, cambia los <code>href</code>.
+      </p>
+    </div>
+
+    <footer>© 2026 Jolley. All rights reserved.</footer>
+  </div>
+</body>
+</html>

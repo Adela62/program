@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FCE Prepositions: in / on / at / to / into</title>
+  <style>
+    :root { --bg:#fff8dc; --card:#ffffff; --border:#e6e0c8; --text:#222; }
+    body { margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--text); }
+    header { padding:18px 16px; text-align:center; }
+    header h1 { margin:0; font-size:20px; }
+    header p { margin:6px 0 0; font-size:14px; opacity:.9; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 14px 24px; }
+    .card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:14px; padding:14px; margin:12px 0;
+      box-shadow: 0 1px 0 rgba(0,0,0,.04);
+    }
+    .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; }
+    .btn {
+      border:1px solid var(--border); background:#fff; border-radius:10px;
+      padding:10px 12px; cursor:pointer; font-weight:600;
+    }
+    .btn:hover { filter:brightness(0.98); }
+    .score { font-weight:700; }
+    .hint { font-size:13px; opacity:.85; margin-top:6px; }
+    .q { line-height: 1.9; font-size:16px; }
+    select {
+      padding:6px 8px; border-radius:10px; border:1px solid #d7d0b6; background:#fff;
+      font-size:15px; margin: 0 4px;
+    }
+    .tag {
+      display:inline-block; font-size:12px; font-weight:700;
+      padding:4px 8px; border-radius:999px; background:#f3edd6; border:1px solid var(--border);
+      margin-bottom:8px;
+    }
+    .result {
+      margin-top:10px; font-size:14px; padding:10px 12px;
+      border-radius:12px; border:1px solid var(--border); background:#fffdf4;
+    }
+    .ok { outline: 2px solid rgba(0, 128, 0, .25); }
+    .bad { outline: 2px solid rgba(200, 0, 0, .20); }
+    footer { text-align:center; font-size:12px; opacity:.75; padding:14px 0 20px; }
+    .small { font-size:12px; opacity:.85; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FCE – Prepositions (in / on / at / to / into)</h1>
+    <p>Completa los huecos y corrige al final. Puedes “Mostrar respuestas” para estudiar.</p>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="controls">
+        <div>
+          <button class="btn" id="checkBtn">Corregir</button>
+          <button class="btn" id="showBtn">Mostrar respuestas</button>
+          <button class="btn" id="resetBtn">Reiniciar</button>
+        </div>
+        <div class="score" id="scoreBox">Puntuación: —</div>
+      </div>
+      <div class="hint">
+        Consejo FCE: piensa en “movimiento” (to/into) vs “posición” (in/on/at) y en expresiones fijas (on time, in the morning, etc.).
+      </div>
+    </div>
+
+    <div id="quiz"></div>
+
+    <div class="card">
+      <div class="tag">Banco de palabras</div>
+      <div class="q">
+        Usa solo: <b>in</b>, <b>on</b>, <b>at</b>, <b>to</b>, <b>into</b>
+      </div>
+      <div class="result small" id="feedbackBox" style="display:none;"></div>
+    </div>
+
+    <footer>
+      © 2026 Jolley. All rights reserved.
+    </footer>
+  </div>
+
+  <script>
+    // === Config ===
+    const OPTIONS = ["", "in", "on", "at", "to", "into"];
+
+    // Cada pregunta está dividida en "parts": texto + huecos (selects).
+    // answers: lista en el orden de aparición de los huecos.
+    const QUESTIONS = [
+      {
+        n: 1,
+        parts: ["", " the morning we went ", " the museum and then had lunch ", " the cafeteria."],
+        answers: ["in", "to", "in"]
+      },
+      {
+        n: 2,
+        parts: ["Look! You have mud ", " your shoes. Wipe them ", " the mat before you come ", " the house."],
+        answers: ["on", "on", "into", "into"] // nota: "come into the house"
+      },
+      {
+        n: 3,
+        parts: ["They went ", " the restaurant and sat down ", " a corner table."],
+        answers: ["to", "at"]
+      },
+      {
+        n: 4,
+        parts: ["I've got to go ", " town this morning but we can meet later ", " the morning, ", " John’s house."],
+        answers: ["to", "in", "at"]
+      },
+      {
+        n: 5,
+        parts: ["It says ", " the newspaper that they're getting married ", " the spring ", " a small church ", " the island of Santorini."],
+        answers: ["in", "in", "in", "on"]
+      },
+      {
+        n: 6,
+        parts: ["There I was, sitting ", " the waiting-room when who do you think came ", " the room?"],
+        answers: ["in", "into"]
+      },
+      {
+        n: 7,
+        parts: ["Tuesday morning, I'm going ", " town to put some money ", " my bank account."],
+        answers: ["to", "into"]
+      },
+      {
+        n: 8,
+        parts: ["The coffee’s ", " the table and there’s some sugar ", " the cupboard if you want some."],
+        answers: ["on", "in"]
+      },
+      {
+        n: 9,
+        parts: ["It’s ", " eight o'clock and I'd like to be ", " the cinema ", " time to see the start of the film."],
+        answers: ["at", "at", "on"]
+      },
+      {
+        n: 10,
+        parts: ["Mr Fisher is ", " Boston now but he’ll be ", " his way back ", " London ", " a couple of days’ time."],
+        answers: ["in", "on", "to", "in"]
+      },
+      {
+        n: 11,
+        parts: ["I saw Jessica ", " Oxford Street ", " the afternoon and she told me she’s still ", " university."],
+        answers: ["on", "in", "at"]
+      },
+      {
+        n: 12,
+        parts: ["Is there anything ", " the television this evening? Have a look ", " the paper — I think the TV guide is ", " the back page."],
+        answers: ["on", "in", "on"]
+      },
+      {
+        n: 13,
+        parts: ["She stood up and walked ", " the window. She saw a woman sitting ", " a bench throwing a ball ", " a dog, who caught it and brought it back ", " her."],
+        answers: ["to", "on", "to", "to"]
+      },
+      {
+        n: 14,
+        parts: ["She was standing ", " the queue ", " the bus stop, with her back ", " me."],
+        answers: ["in", "at", "to"]
+      },
+      {
+        n: 15,
+        parts: ["I had never been ", " the United States before so, when we arrived ", " JFK airport ", " that spring morning in 1989, I felt very excited."],
+        answers: ["in", "at", "on"]
+      }
+    ];
+
+    // === Render ===
+    const quizEl = document.getElementById("quiz");
+    const scoreBox = document.getElementById("scoreBox");
+    const feedbackBox = document.getElementById("feedbackBox");
+
+    function makeSelect(qIndex, blankIndex) {
+      const s = document.createElement("select");
+      s.dataset.q = String(qIndex);
+      s.dataset.b = String(blankIndex);
+      OPTIONS.forEach(opt => {
+        const o = document.createElement("option");
+        o.value = opt;
+        o.textContent = opt === "" ? "—" : opt;
+        s.appendChild(o);
+      });
+      return s;
+    }
+
+    function renderQuiz() {
+      quizEl.innerHTML = "";
+      QUESTIONS.forEach((q, qIndex) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const tag = document.createElement("div");
+        tag.className = "tag";
+        tag.textContent = `Exercise ${q.n}`;
+        card.appendChild(tag);
+
+        const line = document.createElement("div");
+        line.className = "q";
+
+        // Intercalamos texto y selects: parts.length = answers.length + 1
+        q.parts.forEach((txt, i) => {
+          line.appendChild(document.createTextNode(txt));
+          if (i < q.answers.length) {
+            line.appendChild(makeSelect(qIndex, i));
+          }
+        });
+
+        card.appendChild(line);
+        quizEl.appendChild(card);
+      });
+    }
+
+    // === Logic ===
+    function getAllSelects() {
+      return Array.from(document.querySelectorAll("select"));
+    }
+
+    function resetStyles() {
+      getAllSelects().forEach(s => {
+        s.classList.remove("ok", "bad");
+      });
+    }
+
+    function checkAnswers() {
+      resetStyles();
+
+      let total = 0;
+      let correct = 0;
+      let unanswered = 0;
+
+      getAllSelects().forEach(sel => {
+        const qIndex = Number(sel.dataset.q);
+        const bIndex = Number(sel.dataset.b);
+        const expected = QUESTIONS[qIndex].answers[bIndex];
+        const val = sel.value;
+
+        total += 1;
+
+        if (!val) {
+          unanswered += 1;
+          sel.classList.add("bad");
+          return;
+        }
+
+        if (val === expected) {
+          correct += 1;
+          sel.classList.add("ok");
+        } else {
+          sel.classList.add("bad");
+        }
+      });
+
+      scoreBox.textContent = `Puntuación: ${correct} / ${total}`;
+      feedbackBox.style.display = "block";
+
+      if (unanswered > 0) {
+        feedbackBox.textContent =
+          `Te faltan ${unanswered} huecos por completar. Corrige los rojos.`;
+      } else if (correct === total) {
+        feedbackBox.textContent = "Perfecto: todo correcto.";
+      } else {
+        feedbackBox.textContent = "Revisa los huecos marcados en rojo.";
+      }
+    }
+
+    function showAnswers() {
+      resetStyles();
+      getAllSelects().forEach(sel => {
+        const qIndex = Number(sel.dataset.q);
+        const bIndex = Number(sel.dataset.b);
+        const expected = QUESTIONS[qIndex].answers[bIndex];
+        sel.value = expected;
+        sel.classList.add("ok");
+      });
+      scoreBox.textContent = "Puntuación: —";
+      feedbackBox.style.display = "block";
+      feedbackBox.textContent = "Respuestas mostradas (todos los huecos rellenos).";
+    }
+
+    function resetAll() {
+      getAllSelects().forEach(sel => sel.value = "");
+      resetStyles();
+      scoreBox.textContent = "Puntuación: —";
+      feedbackBox.style.display = "none";
+      feedbackBox.textContent = "";
+    }
+
+    // === Events ===
+    document.getElementById("checkBtn").addEventListener("click", checkAnswers);
+    document.getElementById("showBtn").addEventListener("click", showAnswers);
+    document.getElementById("resetBtn").addEventListener("click", resetAll);
+
+    // init
+    renderQuiz();
+  </script>
+</body>
+</html>
